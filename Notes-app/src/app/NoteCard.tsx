@@ -1,7 +1,7 @@
 import React from "react";
 import { router } from "expo-router";
 
-import { Pressable, StyleSheet, Text, useColorScheme } from "react-native";
+import { Pressable, StyleSheet, Text, useColorScheme, View } from "react-native";
 
 type NoteProps = {
   note: {
@@ -9,9 +9,10 @@ type NoteProps = {
     content: string;
     date: string;
   };
+  onDelete: () => void;
 };
 
-export default function NoteCard({ note }: NoteProps) {
+export default function NoteCard({ note, onDelete }: NoteProps) {
   const scheme = useColorScheme();
 
   const isDark = scheme === "dark";
@@ -26,11 +27,12 @@ export default function NoteCard({ note }: NoteProps) {
       style={({ pressed }) => [
         cardStyle,
         {
-          opacity: pressed ? 0.9 : 1,
+          opacity: pressed ? 0.92 : 1,
           transform: [{ scale: pressed ? 0.98 : 1 }],
         },
       ]}
     >
+      <View style={styles.accent} />
       <Text
         style={[
           styles.title,
@@ -52,52 +54,102 @@ export default function NoteCard({ note }: NoteProps) {
       >
         {note.content}
       </Text>
-      <Text
-        style={[
-          styles.date,
-          {
-            color: isDark ? "#888" : "#999",
-          },
-        ]}
-      >
-        {note.date}
-      </Text>
+      <View style={styles.footer}>
+        <Text
+          style={[
+            styles.date,
+            {
+              color: isDark ? "#9A9085" : "#8B8178",
+            },
+          ]}
+        >
+          {note.date}
+        </Text>
+
+        <Pressable
+          onPress={onDelete}
+          style={({ pressed }) => [
+            styles.deleteButton,
+            {
+              opacity: pressed ? 0.85 : 1,
+            },
+          ]}
+        >
+          <Text style={styles.deleteText}>Delete</Text>
+        </Pressable>
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    padding: 18,
-    borderRadius: 22,
-    marginBottom: 18,
-    shadowOpacity: 0.1,
+    padding: 22,
+    borderRadius: 30,
+    marginBottom: 20,
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+
+    shadowOpacity: 0.04,
     shadowRadius: 10,
-    elevation: 4,
+
+    elevation: 3,
   },
 
   darkCard: {
-    backgroundColor: "#1A1A1D",
+    backgroundColor: "#2A2825",
   },
 
   lightCard: {
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFDF9",
+  },
+
+  accent: {
+    width: 52,
+    height: 5,
+    borderRadius: 10,
+    backgroundColor: "#D4A373",
+    marginBottom: 16,
   },
 
   title: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "700",
-    marginBottom: 10,
+    marginBottom: 12,
+    letterSpacing: 0.3,
   },
 
   content: {
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: 15,
+    lineHeight: 26,
+  },
+
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 18,
   },
 
   date: {
-    marginTop: 14,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "500",
+  },
+
+  deleteButton: {
+    backgroundColor: "#D97B66",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+  },
+
+  deleteText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "700",
   },
 });

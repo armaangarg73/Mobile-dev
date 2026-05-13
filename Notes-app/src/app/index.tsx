@@ -1,111 +1,22 @@
+import { router } from "expo-router";
 import React, { useState } from "react";
 
 import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
   FlatList,
-  Switch,
+  Pressable,
   SafeAreaView,
+  StyleSheet,
+  Switch,
+  Text,
+  TextInput,
   useColorScheme,
   useWindowDimensions,
+  View,
 } from "react-native";
 
-import NoteCard from "./NoteCard"
+import NoteCard from "./NoteCard";
 
-
-const notes = [
-  {
-    id: "1",
-    title: "React Native Assignment",
-    content:
-      "Finish Notes App UI using FlatList, Pressable and dark mode support.",
-    date: "May 12",
-  },
-
-  {
-    id: "2",
-    title: "Late Night Thoughts",
-    content: "Why do we suddenly become productivity experts at 2 AM?",
-    date: "May 11",
-  },
-
-  {
-    id: "3",
-    title: "Shopping List",
-    content:
-      "Milk, bread, coffee, protein bars, instant noodles and self-respect.",
-    date: "May 10",
-  },
-
-  {
-    id: "4",
-    title: "Gym Motivation",
-    content:
-      "Paid for 1 month membership. Went twice. Financial loss achieved.",
-    date: "May 9",
-  },
-
-  {
-    id: "5",
-    title: "Startup Idea #27",
-    content: "AI that reminds me where I kept my charger 4 minutes ago.",
-    date: "May 8",
-  },
-
-  {
-    id: "6",
-    title: "Random Quote",
-    content: "Your future self is watching you scroll right now.",
-    date: "May 7",
-  },
-
-  {
-    id: "7",
-    title: "Coding Bug",
-    content: "Fixed one bug. Accidentally created seventeen more.",
-    date: "May 6",
-  },
-
-  {
-    id: "8",
-    title: "Sleep Schedule",
-    content: "Today's bedtime goal: before sunrise.",
-    date: "May 5",
-  },
-
-  {
-    id: "9",
-    title: "Movie List",
-    content:
-      "Interstellar, Fight Club, The Batman, Spider-Verse and Inception.",
-    date: "May 4",
-  },
-
-  {
-    id: "10",
-    title: "Important Reminder",
-    content: "Do not trust your brain after 11 PM.",
-    date: "May 3",
-  },
-
-  {
-    id: "11",
-    title: "Future Goals",
-    content:
-      "Become wealthy, build cool apps and buy parents something amazing.",
-    date: "May 2",
-  },
-
-  {
-    id: "12",
-    title: "Daily Reality",
-    content:
-      "Opened laptop to study. Somehow ended up watching space documentaries.",
-    date: "May 1",
-  },
-];
+import { useNotes } from "../context/NotesContext";
 
 export default function Index() {
   const scheme = useColorScheme();
@@ -113,6 +24,8 @@ export default function Index() {
   const isDark = scheme === "dark";
 
   const { width } = useWindowDimensions();
+
+  const { notes, deleteNote } = useNotes();
 
   const [search, setSearch] = useState("");
 
@@ -122,11 +35,11 @@ export default function Index() {
     note.title.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const backgroundColor = enabled ? "#0D0D0D" : "#F4F4F4";
+  const backgroundColor = enabled ? "#1B1A17" : "#F8F5F1";
 
   const textColor = enabled ? "#fff" : "#111";
 
-  const inputBackground = enabled ? "#1C1C1E" : "#fff";
+  const inputBackground = enabled ? "#2A2825" : "#FFFDF9";
 
   return (
     <SafeAreaView
@@ -141,6 +54,17 @@ export default function Index() {
         <View>
           <Text
             style={[
+              styles.greeting,
+              {
+                color: enabled ? "#B7ADA3" : "#8B8178",
+              },
+            ]}
+          >
+            Take it slow today ☕
+          </Text>
+
+          <Text
+            style={[
               styles.heading,
               {
                 color: textColor,
@@ -152,13 +76,13 @@ export default function Index() {
 
           <Text
             style={[
-              styles.subHeading,
+              styles.noteCount,
               {
-                color: enabled ? "#aaa" : "#666",
+                color: enabled ? "#9C9288" : "#8B8178",
               },
             ]}
           >
-            Organize your thoughts beautifully
+            {filteredNotes.length} Notes
           </Text>
         </View>
 
@@ -166,7 +90,7 @@ export default function Index() {
       </View>
 
       <TextInput
-        placeholder="Search notes..."
+        placeholder="Search little thoughts..."
         placeholderTextColor={enabled ? "#888" : "#999"}
         value={search}
         onChangeText={setSearch}
@@ -184,7 +108,7 @@ export default function Index() {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: 30,
+          paddingBottom: 120,
         }}
         renderItem={({ item }) => (
           <View
@@ -193,10 +117,27 @@ export default function Index() {
               alignSelf: "center",
             }}
           >
-            <NoteCard note={item} />
+            <NoteCard note={item} onDelete={() => deleteNote(item.id)} />
           </View>
         )}
       />
+
+      <Pressable
+        onPress={() => router.push("/editor")}
+        style={({ pressed }) => [
+          styles.fab,
+          {
+            opacity: pressed ? 0.9 : 1,
+            transform: [
+              {
+                scale: pressed ? 0.95 : 1,
+              },
+            ],
+          },
+        ]}
+      >
+        <Text style={styles.fabText}>+</Text>
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -212,24 +153,75 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 28,
+  },
+
+  greeting: {
+    fontSize: 14,
+    marginBottom: 4,
+    fontWeight: "500",
   },
 
   heading: {
-    fontSize: 34,
-    fontWeight: "800",
+    fontSize: 36,
+    fontWeight: "700",
+    letterSpacing: 0.3,
   },
 
-  subHeading: {
-    fontSize: 15,
-    marginTop: 6,
+  noteCount: {
+    marginTop: 8,
+    fontSize: 14,
+    fontWeight: "500",
   },
 
   searchInput: {
-    height: 55,
-    borderRadius: 18,
-    paddingHorizontal: 18,
+    height: 58,
+    borderRadius: 22,
+    paddingHorizontal: 20,
     fontSize: 16,
     marginBottom: 24,
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+
+    elevation: 2,
+  },
+
+  fab: {
+    position: "absolute",
+    bottom: 30,
+    right: 24,
+
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+
+    backgroundColor: "#D4A373",
+
+    justifyContent: "center",
+    alignItems: "center",
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+
+    elevation: 6,
+  },
+
+  fabText: {
+    color: "#fff",
+    fontSize: 36,
+    fontWeight: "300",
   },
 });

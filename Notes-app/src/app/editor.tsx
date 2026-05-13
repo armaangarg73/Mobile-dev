@@ -1,19 +1,20 @@
-import React, { useState } from "react";
 import { router } from "expo-router";
+import React, { useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ImageBackground,
-  ScrollView,
   SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
   useColorScheme,
   useWindowDimensions,
+  View,
 } from "react-native";
+import { useNotes } from "../context/NotesContext";
 
 export default function EditorScreen() {
   const scheme = useColorScheme();
@@ -25,6 +26,8 @@ export default function EditorScreen() {
   const [title, setTitle] = useState("");
 
   const [content, setContent] = useState("");
+
+  const { addNote } = useNotes();
 
   const backgroundColor = isDark ? "#0D0D0D" : "#F4F4F4";
 
@@ -106,7 +109,15 @@ export default function EditorScreen() {
             </Pressable>
 
             <Pressable
-              onPress={() => alert("Note Saved")}
+              onPress={() => {
+                if (!title.trim() || !content.trim()) {
+                  return;
+                }
+
+                addNote(title, content);
+
+                router.back();
+              }}
               style={({ pressed }) => [
                 styles.saveButton,
                 {
